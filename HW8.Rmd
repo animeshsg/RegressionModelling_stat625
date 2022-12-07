@@ -1,0 +1,136 @@
+---
+title: "Homework 8"
+author: "Animesh Sengupta"
+date: "10/31/2022"
+output: pdf_document
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r set up workspace}
+
+setwd("/Users/animeshsengupta/Work Directory/DACSS/STAT625/Homeworks") 
+library(MASS)
+library(alr4)  # loads the installed package into the workspace so you can use it
+library(summarytools)
+library(ggplot2)
+library(plotly)
+library(splines)
+library(boot)
+library(sandwich)
+library(plotly)
+```
+
+## 8.4
+
+### Answer 8.4.1
+```{r}
+sglm=lm(log(MaxSalary)~Score,data = salarygov)
+summary(sglm)
+residualPlots(sglm)
+ncvTest(sglm)
+```
+The residual plot shows signs of a scattered residuals, there are no negative trends which can say that the mean function isnt fitting improperly. It resembles characteristics from a null plot.
+
+## Answer 8.5
+
+### Answer 8.5.1
+```{r}
+colnames(BigMac2003)
+plot_ly(y=~BigMac,x=~FoodIndex,data=BigMac2003)
+BigMac2003%>%arrange(desc(BigMac))%>%head(3)%>%select(BigMac,FoodIndex)
+```
+
+It is very clear from the graph that relation between BigMac and foodIndex is nonlinear , hence we need a non-linear mean function or need to transform the variables to have a linear relationship and linear mean function.
+
+### Answer 8.5.2
+```{r}
+bmlm<-lm(BigMac~FoodIndex,data = BigMac2003)
+bmbc<-boxcox(BigMac~FoodIndex,data = BigMac2003)
+
+lambda <- bmbc$x[which.max(bmbc$y)]
+BigMac2003$BigMac_transform=(BigMac2003$BigMac^(lambda)-1)/lambda
+nbmlm<-lm(BigMac_transform~FoodIndex,data = BigMac2003)
+plot_ly(y=~BigMac_transform,x=~FoodIndex,data=BigMac2003)
+invResPlot(bmlm)
+invResPlot(nbmlm)
+```
+As seen from the inverse response plot , the lambda generated from boxcox method was successfully able to transform the response variable.
+
+### 8.5.3
+```{r}
+new_BigMac2003<-BigMac2003%>%filter(BigMac!=185&BigMac!=132)
+bmbc<-boxcox(BigMac~FoodIndex,data = new_BigMac2003)
+lambda <- bmbc$x[which.max(bmbc$y)]
+lambda
+new_BigMac2003$BigMac_transform=(new_BigMac2003$BigMac^(lambda)-1)/lambda
+nbmlm<-lm(BigMac_transform~FoodIndex,data = new_BigMac2003)
+plot_ly(y=~BigMac_transform,x=~FoodIndex,data=new_BigMac2003)
+invResPlot(nbmlm)
+```
+
+## 9.3
+
+### Answer 9.3.1
+
+```{r}
+colnames(pipeline)
+plot(Lab~Field,data=pipeline)
+```
+As visible from the scatter plot, the relationship isnt exactly linear. This can be attributed to the fact that for a few changing x the y remains almost constant. This trends is unfortunately very prevalent in this dataset. 
+
+### Answer9.3.2
+```{r}
+plm=lm(Lab~Field,data=pipeline)
+summary(plm)
+residualPlots(plm)
+ncvTest(plm)
+```
+from the estimator of field , we get 1.22 which means that the field values are 1.22 times larger than the lab results. It is not a 1-1 relationship between the two. Also finding the residual plots shows that the variance is constant with variance being concentrated on the left and a megaphone like trend.
+
+
+### Answer 9.3.3
+```{r}
+summary(plm)$coef[2, 1:2]
+
+plb<-Boot(plm)
+summary(plb)
+
+plw<-lm(Lab~Field,weights=1/Field,data=pipeline)
+summary(plw)$coef[2, 1:2]
+
+pld<-deltaMethod(plm,"Field",vcov=hccm)
+pld$Estimate
+pld$SE
+```
+
+## 9.11
+```{r}
+colnames(fuel2001)
+fuel2001$Fuel=fuel2001$FuelC/fuel2001$Pop
+fuel2001$Dlic=fuel2001$Drivers/fuel2001$Pop
+
+flm<-lm(Fuel ~ Tax+Dlic+Income+log(Miles),data=fuel2001)
+t<-studres(flm)
+D<-cooks.distance(flm)
+cat("State","t_i","d_i","\n")
+cat("Alaska",t["AL"],D["AL"],"\n")
+cat("New York",t["NY"],D["NY"],"\n")
+cat("Hawaii",t["HI"],D["HI"],"\n")
+cat("Wyoming",t["WI"],D["WI"],"\n")
+cat("DC",t["DC"],D["DC"])
+#head(D,20)
+```
+the largest outlier from studentized t test is of Wyoming. Since the cooks distance is also small compared to the 4 times mean , we can conclude none of them are outliers.
+
+## 9.19
+```{r}
+colnames(drugcost)
+view(dfSummary(drugcost))
+plot(drugcost)
+```
+
+

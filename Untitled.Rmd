@@ -1,0 +1,155 @@
+---
+  title: "Homework 3"
+author: "Animesh Sengupta"
+date: "9/27/2022"
+output: pdf_document
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r set up workspace}
+
+setwd("/Users/animeshsengupta/Work Directory/DACSS/STAT625/Homeworks") 
+library(alr4)  # loads the installed package into the workspace so you can use it
+library(summarytools)
+library(ggplot2)
+library(plotly)
+```
+
+
+### Answer 3.1
+```{r}
+colnames(UN11)
+b1<- ggplot(UN11,aes(x=log(ppgdp), y=fertility)) + 
+    geom_point()+
+    xlab("gdp per person")+
+    ylab("Fertility")+
+    ggtitle("ppgdp vs fertility")
+ggplotly(b1)
+```
+
+```{r}
+UN11$logppgdp=round(log(UN11$ppgdp),2)
+ans1<-UN11%>%filter(logppgdp==9.73|logppgdp==8.37)
+#ans2<-UN11%>%filter(logppgdp==8.37)
+ans1
+```
+There are some regions and localities in Africa(as per above dataframe) which has a high log(ppgdp) and even higher fertility.  they all have lower life expectency, around the range of 52% in common.  
+
+### Answer 3.2
+
+## 3.2.1
+```{r}
+ans321<-pairs(~ fertility+log(ppgdp)+pctUrban, data=UN11)
+ans321
+```
+The most clear marginal relationship is between log(ppgdp) and pcturban, As evident from the scatterplot a linear model with a positive slope will fit it perfectly well. 
+
+However the relationship between fertility and log(ppgdp) as per the scatterplot seems a bit complex. A lot of data points are clustered in one region , which shows skewed distribution over log(ppgdp). a single fit of line wouldnt be able to do justice for modelling. The same can be said about the marginal relationship between fertility and pcturban.
+
+## 3.2.2
+```{r}
+unml1<-lm(fertility~log(ppgdp),UN11)
+unml2<-lm(fertility~pctUrban,UN11)
+b1<- ggplot(UN11,aes(x=log(ppgdp), y=fertility)) + 
+    geom_point()+
+    stat_smooth(method="lm")+
+    xlab("log gdp per person")+
+    ylab("Fertility")+
+    ggtitle("ppgdp vs fertility")
+b2<-ggplot(UN11,aes(x=pctUrban, y=log(fertility))) + 
+    geom_point()+
+    stat_smooth(method="lm")+
+    xlab("pctUrban")+
+    ylab("Fertility")+
+    ggtitle("pctUrban vs fertility")
+b1
+b2
+```
+
+```{r}
+summary(unml1)
+summary(unml2)
+```
+Since the p value of both the models are very less in the range of 2e-16 , we can conclude that they are significantly different from 0 at any conventional level of significance like =0.05 or 0.001
+
+## 3.2.3
+```{r}
+unml3<-lm(fertility~log(ppgdp)+pctUrban,UN11)
+avPlots(unml3)
+summary(unml3)
+
+```
+Acc to the added variable plots, the log(ppgdp) is useful after adjusting for pcturban because the model somewhat fits to the data and there is less variability across the fitted line. it models negatively with y=-x model type. the same cant be said for the pcturban after adjusting log(ppgdp) because it poorly fits the data and there is a lot of deviation from fitted line. 
+
+## 3.2.4
+
+As seen from the summary of both the models, the estimated coefficient as -0.62 from single regression of log(ppgdp) and multiple regression with pcturban.
+
+## 3.2.5 and 3.2.3 mean function computation
+```{r}
+unml4<-lm(pctUrban~log(ppgdp), UN11)
+unml5<-lm(log(ppgdp)~pctUrban, UN11)
+unml6<-lm(residuals(unml1)~residuals(unml4), UN11)
+unml7<-lm(residuals(unml2)~residuals(unml5), UN11)
+unml8<-lm(residuals(unml3)~residuals(unml6))
+unml9<-lm(residuals(unml3)~residuals(unml7))
+
+summary(unml8)
+summary(unml9)
+```
+The slope from avgplots and from the mean function are 1 with very small p value hence we can conclude that they are identical. Thus residuals from avgplot and mean function are same. 
+
+## 3.2.6
+```{r}
+summary(unml1)
+summary(unml7)
+summary(unml3)
+```
+As evident from the summary , all the 3 values of t test varies. Since another term is added i.e pcturban, the variation of data will be explained by that added term and hence the variance will reduce and so will tvalue. hence we see a reduction from -14.61 to -9.63
+
+
+### Answer 3.4
+
+## 3.4.1
+The line will be parallel to y axis since x1 is fixed , thus x2 will be fixed to becoz of linear relationship
+
+## 3.4.2
+it will be something similar to null plot since there is a relation between y and x with no error hence the residuals wil be in a straight line.
+
+## 3.4.3
+under the condition of coefficient of determination (R squared) for Y~X1 is near 0 , which means x1 addds no variability to Y, then it will be same as Y~X2
+
+## 3.4.4
+True
+
+### Answer 4
+if Pr(> |t|) = .08 then the p-value will be 0.08.
+
+### Answer 5
+One applied situation where mulitple regeression will be helpful in  the case of total sales of a particular grocery stores. The predictors could be the population density near store location  and the range of items. hence the response would be sales and the predictors would be population density and range of items sold.  A step by step multiple regression would help us determining where it would be prudent to open a store. it can show a relation between opening a store in a populous location versus having a wide range of items.
+
+
+### Answer 3.6
+
+## 3.6.1
+```{r}
+colnames(water)
+ans361<-pairs(~ BSAAM+OPBPC+OPRC+OPSLAKE, data=water)
+cormatrix<-water%>%select(BSAAM,OPBPC,OPRC,OPSLAKE)%>%cor()
+cormatrix
+```
+As per the scatterplot matrix, opbpc and opslake fits each other fantastically along the line y=x with good variation across the line. In general a lot of the predictors fit each other very well. OPBPC and OPRC also fits very well but not as well as the previous example. OPSlake fits all the other predictors very well , with a model type y=x i.e a positive slope. 
+These ideas are reinforces with the correlation matrix as wel. The correlation matrix row of opslake has value equal to 0.9ish which shows a strong correlation.
+
+## 3.4.2
+```{r}
+unml12<-lm(BSAAM~OPBPC+OPRC+OPSLAKE,water)
+
+summary(unml12)
+```
+
+The t value columnn shows the associated t test with the significance of estimated parameters. That means a t-test was performed on the estimators (B0,B1)etc which can be used to accept or reject the hypothesis.
+ 

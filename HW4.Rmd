@@ -1,0 +1,103 @@
+---
+title: "Homework 4"
+author: "Animesh Sengupta"
+date: "10/4/2022"
+output: pdf_document
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r set up workspace}
+
+setwd("/Users/animeshsengupta/Work Directory/DACSS/STAT625/Homeworks") 
+library(alr4)  # loads the installed package into the workspace so you can use it
+library(summarytools)
+library(ggplot2)
+library(plotly)
+```
+
+
+## Answer 4.2
+
+```{r}
+a=(Transact$t1+Transact$t2)/2
+d=(Transact$t1-Transact$t2)
+head(Transact,5)
+colnames(Transact)
+m1=lm(time~t1+t2,data=Transact)
+m2=lm(time~a+d,data=Transact)
+m3=lm(time~t2+d,data=Transact)
+m4=lm(time~t1+t2+a+d,data=Transact)
+summary(m1)
+summary(m2)
+summary(m3)
+summary(m4)
+
+cor(Transact$t2,d)
+cor(Transact$t1,Transact$t2)
+```
+
+### 4.2.1
+
+As per the model m4 summary, the coefficient estimates are NA. This is because of the fact that the predictors a and b used are linear combination of other predictors t1 and t2. Since it is a linear combination the inverse of matrix to find the estimators gets not invertable.
+
+### 4.2.2
+
+As per summary of all the 4 models, the intercept and the rest of statistical measures like Residual standard error, Multiple R squared, F-statistics are same. The estimators of t1 and t2 in m1,m4 and m3(for t2) are of same value too. Meanwhile the estimator of "d" changes in all the models it is used in. the estimate for t2 changes from m1 and m3 as well.
+
+### 4.2.3
+
+We can attribute this difference in  estimate due to the correlation between t1 and other predictors. The correlation changes between t2 vs t1-t2 and with t1 vs t2. As you can see from the correlation calculation , it is higher between t2 vs t1-t2 than t2 vs t1.
+
+## Answer 4.6
+
+```{r}
+unml<-lm(log(fertility)~pctUrban,UN11)
+summary(unml)
+
+b3<- ggplot(UN11,aes(x=log(ppgdp), y=pctUrban)) + 
+    geom_point()+
+    stat_smooth(method="lm")+
+    xlab("pctUrban")+
+    ylab("log(Fertility)")+
+    ggtitle("pctUrban vs fertility")
+b3
+```
+The estimated coefficient B0 or the intercept provides the value of the log(fertility) when pctUrban is 0. while the coefficient of pctUrban or b1 provides us the interpretation that with every unit increase in pctUrban the log(fertility) decreases by 0.01
+
+## 4.7
+```{r}
+colnames(UN11)
+unml2<-lm(log(fertility)~log(ppgdp)+lifeExpF,UN11)
+summary(unml2)
+
+fert_change=log(0.25*exp(0.065))
+fert_change
+```
+As per the emodel fitting, the estimate for log(ppgdp) came out to be -0.065. With a 25% increase in ppgdp , we calculated the log of exp of estimate with 0.25 to verify the decrease in fertility by approx 1.4%
+
+## Answer 4.9
+
+### 4.9.1
+The intercept explains the salary in $ for males and that is 24697 since male is assigned 0. The slope of 3340 is the part of salary that females earn less than their male counterparts.
+
+### 4.9.2
+
+Due to inlcusion of an entirely new estimator i.e year in the model the prediction estimate of salary changes and so does the estimate of sex as well. It means that the year explains more variability in salary i.e more increase in experience correlates to higher salary. Interestingly due to experience in year, it aslo values highly experiences female candidates than their male counterparts. This means that with year as the estimate in the salary prediction model, the weight of sex positively affects the salary. 
+
+## Answer 4.13
+
+### 4.13.1
+```{r}
+colnames(MinnWater)
+percapitause=log(10^6*MinnWater$muniUse/MinnWater$muniPop)
+
+mwlm<-lm(percapitause~year+muniPrecip+log(muniPop),data = MinnWater)
+summary(mwlm)
+
+
+mwcorr<-pairs(~percapitause+muniUse+muniPrecip+muniPop+year,data = MinnWater)
+```
+As per the fitted model with new response variable of log of perCapitaUse, there were a few significant changes in  the estimates. changing the response variable changed the intercept quite significantly as expected. This can be attributed to the difference in scales of percapitause and muniUse. Although the general trend and effects of the estimates remained similar. Both year and muniPrecip still negatively effects the response while log(muniPop) shows a high effect. As per the scatterplot matrix too, there is not high correlation modelling between percapitause and muniUse as well. There maybe a weak model fit although. 

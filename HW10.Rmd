@@ -1,0 +1,47 @@
+---
+title: "Homework 9"
+author: "Animesh Sengupta"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r set up workspace}
+
+setwd("/Users/animeshsengupta/Work Directory/DACSS/STAT625/Homeworks") 
+library(MASS)
+library(alr4)  # loads the installed package into the workspace so you can use it
+library(summarytools)
+library(ggplot2)
+library(plotly)
+library(splines)
+library(boot)
+library(sandwich)
+library(plotly)
+```
+
+## Answer 11.1
+
+### Answer 11.1.1
+the parameter $\gamma$ makes the mean fuction non linear, and in this case it is being multiplied to the predictor $\beta_{ij}$. For every different value of $j \in G$, which essentially means each group has its own predictor and hence its own slope .these indicate that there are a bunch of straight line of mean functions concurrent at $x=\gamma$ for every $\beta_{ij}$.
+
+### Answer 11.1.2
+```{r}
+colnames(sleep1)
+#starting values
+slm<-lm(TS ~ log(BodyWt):factor(D), sleep1)
+summary(slm)
+slm1<-nls(TS~ b0 + b11*((D==1)*(log(BodyWt) - gamma))
+                + b12*((D==2)*(log(BodyWt) - gamma))
+                + b13*((D==3)*(log(BodyWt) - gamma))
+                + b14*((D==4)*(log(BodyWt) - gamma))
+                + b15*((D==5)*(log(BodyWt) - gamma)),
+    data=sleep1,
+    start=list(b0=11,b11=-.28,b12=-.59,b13=-.93,b14=-.64,
+               b15=-1.65, gamma=0))
+summary(slm1)
+```

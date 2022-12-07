@@ -1,0 +1,58 @@
+---
+title: "HW12"
+author: "Animesh Sengupta"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 2
+
+I have completed the tutorials
+
+## Question 6
+
+The two definitions that I chose was the following :
+
+(1) Fixed effects are constant across individuals, and random effects vary. For example, in a growth study, a model with random intercepts a_i and fixed slope b corresponds to parallel lines for different individuals i, or the model y_it = a_i + b t. Kreft and De Leeuw (1998) thus distinguish between fixed and random coefficients.
+
+(2) Effects are fixed if they are interesting in themselves or random if there is interest in the underlying population. Searle, Casella, and McCulloch (1992, Section 1.4) explore this distinction in depth.
+
+One of the major differences between the two definitions is how we intrinsically look at the random/fixed effects. The former definition relies more on the characteristics of the data while the latter definitions is more concerned about the way the problem statement/objective of analysis shaped. So accordingly , the first definition talks and proposes that the predictors effect is constant throughout the analysis cycle i.e either fixed or random. The second definition offers a bit more variability in the behaviour of predictors , i.e it can either be fixed/random solely based on the goal/objective of analysis.
+
+## Question 3
+
+### 3a
+```{r}
+library("ggplot2")
+library("GGally")   
+library("readr")
+
+setwd("/Users/animeshsengupta/Work_Directory/DACSS/STAT625/Homeworks")
+data<-read_csv("/Users/animeshsengupta/Work_Directory/DACSS/STAT625/Homeworks/HSB_data.csv",skip=0)
+colnames(data)
+head(data)
+
+ggpairs(columns=c("mathach","ses","meanses","sector"),data=data)
+
+```
+
+### 3.b
+as evident from the pairwise plot, we have some outliers in both ses and messures. These outliers are particulalry visible because majority of datapoints are concentrated at a particular locality.Hence it would be important to analyse the effect of these outliers. Due to extraordinary large datapoints , the relationship between ses and measures against mathach would have to be carefully examined and we need to identify inderlying groups and take into account the random effects based on those groups. Probably sector would be one of those grouping variables. Sector looks more like a categorical data with 2 values, although it can be used for analysing the random effect, but according to the tutorial it was mentioned that it is a good practice for the grouping variable to have more than 3 categories. Lastly, all the predictors seemed significantly important and we should try to take them into account for further regrerssion analtysis. 
+
+### question 4
+
+## 4a
+```{r}
+library(lme4)
+hsblmer<-lmer(mathach~(1|sector)+meanses+ses,data=data)
+summary(hsblmer)
+```
+### 4b
+```{r}
+hsblmer2<-lmer(mathach~(1+meanses:ses|sector)+meanses+ses,data=data)
+summary(hsblmer)
+```

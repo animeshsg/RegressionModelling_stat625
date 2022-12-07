@@ -1,0 +1,145 @@
+---
+title: "Homework 2"
+author: "Animesh Sengupta"
+date: "9/19/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r set up workspace}
+
+setwd("/Users/animeshsengupta/Work Directory/DACSS/STAT625/Homeworks") 
+library(alr4)  # loads the installed package into the workspace so you can use it
+library(summarytools)
+library(ggplot2)
+
+```
+
+
+### Answer 1
+
+Answer 2.2.1 : The line y=x essentially means that for cities, the change in price of rice has been constant. If a point lies above the line then that means there has been a rise in price of rice between 2003 and 2009 and if the point is lower then the price of rice has decreased.
+
+Answer 2.2.2 : Vilnius has largest increase in rice price. While mumbai has the largest decrease in rice price.
+
+Answer 2.2.3: if $$\hat{\beta_1}<1$$ generally means that the y value will be lesser than x value. In this case price of 2009 will be lesser than 2003. But the price of rice in 2009 is also determined by other parameter estimate $$\hat{\beta_0}$$ which can increase the y value from x value. So we cant say for all values of x (i.e price of rice at 2003) is greater than all values of y(price of rice at 2009)
+
+Answer 2.2.4: Fitting linear regression to this might not be appropriate because:
+1. A lot of the data points are clustered around one area thus making it harder to accurately draw a model.
+2. There are a lot of datapoints with extremeties, with higher values lying as outlier and lower values clustered in a region. This may restrict the model estimation and a log transformation might help.
+
+
+### Answer 2
+Answer 2.3.1: A log transformation makes the distribution looks more linearly spread across both the axes. The log transfomation also helps in taking care of extreme values and distributes them linearly across the graph. This linear distribution would make simple linear regression estimations easier.
+
+Answer 2.3.2: b1 essentially captures the rate of growth, hence if it is greater than 1 , then it would lead to exponential growth and if it is equal to one then it would be linear growth and if less than 1 then slower growth. Meanwhile b0 is like an scaling multiplier to the growth function.  
+
+### Answer 4
+Answer 2.15.1 and 2.15.2
+```{r}
+colnames(wblake)
+dim(wblake)
+summary(wblake)
+
+
+wb<-lm(Length~Age,wblake)
+newdat<-data.frame(Age=c(2,4,6))
+p2<-predict(wb,newdat,interval="prediction")
+p2
+
+p3<-predict(wb,data.frame(Age=c(9)),interval="prediction")
+p3
+
+```
+The max age is 8, we are trying to predict for 95% interval for mean age =9 , there are no datapoints for this range hence it can be untrustworthy.
+
+
+### Answer 5 
+Answer 2.16.1 and 2.16.2
+
+```{r 2b}
+unml<-lm(log(fertility)~log(ppgdp),UN11)
+b3<- ggplot(UN11,aes(x=log(ppgdp), y=log(fertility))) + 
+    geom_point()+
+    stat_smooth(method="lm")+
+    xlab("gdp per person")+
+    ylab("Fertility")+
+    ggtitle("ppgdp vs fertility")
+b3
+```
+answer 2.16.3 and 2.16.4
+```{r}
+summary(unml)
+```
+The t test for slope = 0 , th ep value computed is p<2X10^-16 which is very small and thus very less probable. so we reject the null hypothesis that the slope ==0 . The significance level for this test would be 0.05 as default. 
+
+Coefficient of determination is 0.526, means that 52.6% of the variation in fertility can be explained by the ppgdp.
+
+Answer 2.16.5 
+
+```{r}
+p1<-predict(unml,data.frame(ppgdp=c(1000)),interval="prediction")
+p1
+exp(p1[2])
+exp(p1[3])
+
+```
+so prediction interval for fertility is (1.87, 6.32)
+
+###Answer 6
+
+The prediction interval of new value y star will be more than the confidence interval of E(y star|x star).
+
+### Answer 9
+```{r}
+#Answer 2.13.1
+summary(Heights)
+m9<-lm(dheight ~ mheight, data=Heights)
+summary(m9)
+#answer 2.13.2
+confint(m9,level=0.99)
+#answer2.13.3
+p9<-predict(m9,data.frame(mheight=64),level=0.99,interval="prediction")
+p9
+```
+2.13.1: The T test for hypothesis b1=0 has a very small p value , thus we can reject this hypothesis and can say that the b1 has some value.
+2.13.2 the 99% confidence interval value for b1 is 0.608
+2.13.3 Best fir prediction is 64.589 
+
+### Answer 10
+```{r}
+#answer 2.4.1
+summary(UBSprices)
+plot10<-ggplot(UBSprices,aes(x=bigmac2003, y=bigmac2009))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  geom_smooth(method='lm', formula= y~x)
+  
+plot10
+```
+
+2.4.2
+The simple linear regression will not be a best way to fit a model to this distribution because most of the data is clustered is one region. In both the axes it has a very skewed distribution with having very less values at the higher end of axes. Due to skewed distribution , it is not a good idea.
+
+
+```{r}
+plot102<-ggplot(UBSprices,aes(x=log(bigmac2003), y=log(bigmac2009)))+
+  geom_point()+
+  stat_smooth(method="lm")
+plot102
+```
+After the log transformation , it linearly distributes the points across the axes somewhat uniformly. After the transformation there also visible a simple linear relation among both the variables. This is attributed to normal distribution around the axes after log transform. Hence it makes more sense to run simple linear regression for this log transformed model.
+
+### Answer 11
+
+
+```{r}
+summary(ftcollinssnow)
+colnames(ftcollinssnow)
+m11<-lm(Early~Late,ftcollinssnow)
+summary(m11)
+```
+As per the t test for slope for the linear model , we get the p value of 0.124, which is somewhat lower 

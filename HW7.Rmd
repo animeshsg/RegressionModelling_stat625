@@ -1,0 +1,128 @@
+---
+title: "Homework 7"
+author: "Animesh Sengupta"
+date: "10/25/2022"
+output: pdf_document
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r set up workspace}
+
+setwd("/Users/animeshsengupta/Work Directory/DACSS/STAT625/Homeworks") 
+library(alr4)  # loads the installed package into the workspace so you can use it
+library(summarytools)
+library(ggplot2)
+library(plotly)
+library(splines)
+library(boot)
+library(sandwich)
+```
+
+## Answer 7.3
+
+### 7.3.1
+I believe that is not true , we need to provide lower weights to observations from oversampled subpopulation. The reason for assigning lower weights is because oversampled population have a higher sampling probability due to bootstrapping. Sampling probability and raw weights have an inverse relationship , hence higher sampling probability , lower the sampling weights. 
+
+### 7.3.2
+Irrespective of wether the observations are from the responders or nonresponders, when combining them they will eventually increase the size of observation because theyre treated the same. The weight will increase since adding more observations will only increase the number of observations. 
+
+## Answer 7.7
+
+### 7.7.1
+```{r}
+colnames(galtonpeas)
+plot(Progeny~Parent,galtonpeas)
+```
+
+### 7.7.2
+```{r}
+gplm=lm(Progeny~Parent,data=galtonpeas,weights=1/SD^2)
+plot(Progeny~Parent,galtonpeas)
+abline(gplm)
+```
+
+### 7.7.3
+```{r}
+gplm=lm(Progeny~Parent,data=galtonpeas,weights=1/SD^2)
+plot(Progeny~Parent,galtonpeas)
+abline(gplm)
+```
+
+### 7.7.3
+The experimental biases should decrease the slope and it would increase the estimates of error since it may increase the variance. 
+
+## answer 7.9
+
+### 7.9.1
+```{r}
+cint<-t.test(log(UN11$fertility))$conf.int
+cint
+cint2<-rbind(cint,exp(cint))
+cint2
+```
+
+###7.9.2
+```{r}
+set.seed(12345)
+median_data<-function(d,i){
+  median(d[i])
+}
+b<-boot(UN11$fertility,median_data,R=1000)
+boot.ci(b)
+```
+
+## 7.6
+
+###7.6.1
+```{r}
+colnames(stopping)
+plot(Distance ~ Speed,data=stopping)
+```
+As seen on the graph, there is no linear relationship pattern between the two. The scatterploty tends to curve upwards hence the only conclusion that can be made, is that the regression fit will be polynomial in quadratic. 
+
+### 7.6.2
+```{r}
+dlm<-lm(Distance~I(Speed^2),data=stopping)
+summary(dlm)
+l1<-leveneTest(stopping$Distance,stopping$Speed)
+l1
+```
+
+### 7.6.3
+```{r}
+dlm2<-lm(Distance~I(Speed^2),data=stopping,weights = 1/Speed)
+summary(dlm2)
+```
+### 7.6.4
+```{r}
+sandwich(dlm)
+
+```
+
+
+## 7.11
+
+$d(E(Y/X)/dX_{1}= \beta_{1}+2\beta_{3}X_{1}+\beta_{5}X_{2}$ 
+$d(E(Y/X)/dX_{2}= \beta_{2}+2\beta_{4}X_{2}+\beta_{5}X_{1}$
+
+solving for zero gives us in the above two equations gives us:
+$X1=(\beta_{2}\beta_{5}-2\beta_{1}\beta_{4})/(4\beta_{3}\beta_{4}-\beta_{5}^2)$
+$X2=(\beta_{1}\beta_{5}-2\beta_{2}\beta_{3})/(4\beta_{3}\beta_{4}-\beta_{5}^2)$
+
+```{r}
+clm=lm(Y~X1+X2+I(X2^2)+I(X1^2)+X1:X2,data=cakes)
+clm$coefficients
+x1<-(clm$coefficients[2]*clm$coefficients[5]-2*clm$coefficients[1]*clm$coefficients[4])/(4*clm$coefficients[3]*clm$coefficients[4]-clm$coefficients[5]^2)
+x2<-(clm$coefficients[1]*clm$coefficients[5]-2*clm$coefficients[2]*clm$coefficients[3])/(4*clm$coefficients[3]*clm$coefficients[4]-clm$coefficients[5]^2)
+```
+
+## 7.13
+
+```{r}
+colnames(Transact)
+tlm<-lm(time~t1+t2,Transact)
+deltaMethod(tlm,"t1/t2")
+```

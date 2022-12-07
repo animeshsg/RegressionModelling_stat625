@@ -1,0 +1,126 @@
+---
+title: "Homework 9"
+author: "Animesh Sengupta"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r set up workspace}
+
+setwd("/Users/animeshsengupta/Work Directory/DACSS/STAT625/Homeworks") 
+library(MASS)
+library(alr4)  # loads the installed package into the workspace so you can use it
+library(summarytools)
+library(ggplot2)
+library(plotly)
+library(splines)
+library(boot)
+library(sandwich)
+library(plotly)
+```
+
+## Answer 10.3
+```{r}
+colnames(mantel)
+mlm <- lm(Y ~ 1, data=mantel)
+step(mlm,scope= ~ X1 + X2 + X3, direction="forward")
+mlm2 <- lm(Y ~ X1 + X2 + X3, data=mantel)
+step(mlm2,scope=~1, direction="backward",)
+```
+```{r}
+#adding log(n) in step function to get BIC values
+n=nrow(mantel)
+mlm3<- lm(Y ~ 1, data=mantel)
+step(mlm3,scope= ~ X1 + X2 + X3, direction="forward",k=log(n))
+mlm4 <- lm(Y ~ X1 + X2 + X3, data=mantel)
+step(mlm4,scope=~1, direction="backward",k=log(n))
+```
+After performing backward and forward elimination using both AIC and BIC we can conlcude the following few things. As expected, the BIC is giving tougher penalties hence the BIC values in stepwise model comparison is smaller than AIC values. In backward selection, the AIC doesnt seem to change, and also RSS is 0, hence indicating perfect fit. This is also shown by the warning. from backward, removing x3 , didn't change the model fit , so we can remove x3 and still get good level of fit. Hence x1 and x2 are active regressors.
+
+##Answer 10.5
+
+```{r}
+colnames(dwaste)
+plot(dwaste)
+dwaste$logO2UP=log(dwaste$O2UP)
+tvs_outlier=min(dwaste$TVS)
+dwaste1<-dwaste%>%filter(TVS!=tvs_outlier)%>%select(!Day&!O2UP)
+plot(dwaste1)
+```
+The very first part of any kind of regression analysis inludes a visual analysis using scatterplot matrix. This step was done for this particular dataset and few trends were identified from the scatterplot matrix of this dataset. The response variable O2UP wrt to other variable had non linear i.e curvy relationship with the other independent variables. This indicated that the response variable needed to undergo a transformation , most likely log transformation as suggested in the question itself.
+Also from analysing the TVS Scatterplot row and column, we can see a very distinct outlier. This outlier was also removed.
+
+```{r}
+dlm1<-lm(O2UP~BOD+TKN+TS+TVS+COD,data=dwaste)
+invResPlot(dlm1)
+qqnorm(dlm1$residuals)
+qqline(dlm1$residuals)
+```
+To verify the need of transformation of the response variable , we checked the inverse residual plot of normal mean function without transformation. The Box cox method clearly shows a curved fitted line, hence we can go ahead with a transformed response model fit. Also the qq plot was plotted, which shows an almost linear relation bar one , where one residual is very far away from the line fit.
+
+Next step is to analyse the inclusion of which independent variable will reduce the criterion. We chose the AIC criterion and ran the stepwise model selection process backward and forward
+```{r}
+dlm2<-lm(logO2UP~BOD+TKN+TS+TVS+COD,data=dwaste1)
+step(dlm2,scope=~1, direction="backward",test="F")
+
+dlm3<-lm(logO2UP~1,data=dwaste1)
+step(dlm3,scope=~BOD + TKN + TS + TVS + COD, direction="forward",test="F")
+```
+As seen by both the method , TVSL,COD and TXN are the active regressors which reduces the criterion with meaningful change in RSS. Iteratively removing the TS and BOD regressor from backward selection didnt have a siginificant reduction in the RSS. Hence models were chosen without these two regressors. 
+```{r}
+dlm4<-lm(logO2UP ~ TVS + COD + TKN,data=dwaste1)
+qqnorm(dlm4$residuals)
+qqline(dlm4$residuals)
+residualPlot(dlm4)
+```
+The mean function with the regressor selected from stepwise selection were chosen and the mean function was computed. The qqplot was plotted to check if the residual follows a straight line , and we can see that they do. The qqplot after the log transform significantly improves the residual plot. Also from the residual plot , we can see that the  residuals are normally distributed.
+
+## Answer 3
+
+### 3.a
+
+Since it says that for the fitted model, previous wage is highly significant , we can reject the null hypothesis and we can determine that this regressor explains a lot of variation in response variable. Since gender isnt statistically significant , accepting the null hypothesis is true. I would not be too happy about the selection of model terms because the criterion is not defined. Since there are many other regressor variables, there are chances that some of them may have a positive impact in maximising the criterion in stepwise regression process. 
+
+### 3.b
+Since AIC was chosen as a criterion and Gender was not chosen in this , it may be possible that the inclusion of the gender regressor didnt have a significant impact on the AIC criterion. This means that , adding or not adding the gender regressor didnt have much impact on the RSS of the mean function hence it was ignored.
+
+### 3.c
+Since the lasso regression methods adds penalty based on the coefficients of the regressors, hence scaling of regrressor has a big effect during lasso regression and thus we see a change. when we scale the regrressor, we are essentially changing its coefficient i.e scaling the coefficient. Thus if we divide the regressor by 10 , to accomodate the change , the coefficient will increase and thus lasso will add more penalty. And this caused the lasso regression to reject scaled regressor here.
+
+### 3.d
+I would use one of the model selector process to select the regressors for my mean function. I will either choose AIC or BIC as my criterion or loss function. I would choose AIC over BIC because, BIC penalizes for overcomplicated models thus reducing the chances of overfitting. Using either of forward or backward stepwise regression , I would reduce the set of regressors. 
+
+## Answer 4
+
+### 4.1
+```{r}
+N=100
+M=60
+dataset=matrix( rnorm(N*M,mean=0,sd=1), N, M)
+```
+### 4.2
+```{r}
+out=data.frame(y=runif(100))
+```
+
+### 4.3
+```{r}
+dataframe=as.data.frame(dataset)
+names(dataframe)[-1] <- paste0('x', 1:(ncol(dataframe)-1))
+dataframe$y=out$y
+head(dataframe,5)
+colnames(dataframe)
+```
+
+### 4.4
+```{r}
+lm1<-lm(y~1,data=dataframe)
+biggest <- formula(lm(y~.,dataframe))
+sub=step(lm1,scope=biggest , direction="forward",test="F")
+
+```
